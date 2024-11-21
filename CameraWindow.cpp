@@ -1,10 +1,11 @@
 #include "CameraWindow.h"
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QImage>
 #include <QPixmap>
 #include <opencv2/opencv.hpp>
 
-CameraWindow::CameraWindow(QWidget *parent) : QWidget(parent), capture(0), isRunning(false)
+CameraWindow::CameraWindow(QWidget *parent) : QWidget(parent), capture(0), isRunning(false), brightnessFactor(1.0), zoomFactor(1.0)
 {
     // Set up the window layout
     setWindowTitle("Webcam Feed");
@@ -19,25 +20,48 @@ CameraWindow::CameraWindow(QWidget *parent) : QWidget(parent), capture(0), isRun
     stopButton = new QPushButton("Stop", this);
     stopButton->setEnabled(false);
 
-    // Create layout
+    // Create sliders for brightness and zoom
+    brightnessSlider = new QSlider(Qt::Horizontal, this);
+    brightnessSlider->setRange(0, 200);  // 0 to 200 for brightness factor adjustment
+    brightnessSlider->setValue(100); // Default value (normal brightness)
+    
+    zoomSlider = new QSlider(Qt::Horizontal, this);
+    zoomSlider->setRange(50, 150);  // 50% to 150% zoom
+    zoomSlider->setValue(100); // Default value (no zoom)
+
+    // Create layout for buttons and sliders
     QVBoxLayout *layout = new QVBoxLayout();
     layout->addWidget(label);
     layout->addWidget(startButton);
     layout->addWidget(stopButton);
+    
+    QHBoxLayout *controlsLayout = new QHBoxLayout();
+    controlsLayout->addWidget(new QLabel("Brightness"));
+    controlsLayout->addWidget(brightnessSlider);
+    layout->addLayout(controlsLayout);
+    
+    QHBoxLayout *zoomLayout = new QHBoxLayout();
+    zoomLayout->addWidget(new QLabel("Zoom"));
+    zoomLayout->addWidget(zoomSlider);
+    layout->addLayout(zoomLayout);
+
     setLayout(layout);
 
-    // Connect buttons to respective slots
+    // Connect buttons and sliders to respective slots
     connect(startButton, &QPushButton::clicked, this, &CameraWindow::startFeed);
     connect(stopButton, &QPushButton::clicked, this, &CameraWindow::stopFeed);
+    connect(brightnessSlider, &QSlider::valueChanged, this, &CameraWindow::changeBrightness);
+    connect(zoomSlider, &QSlider::valueChanged, this, &CameraWindow::changeZoom);
 
     // Set up a timer to capture frames from the camera
     timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &CameraWindow::updateFrame);
 }
 
-CameraWindow::~CameraWindow() {
+CameraWindow::~CameraWindow()
+{
     if (capture.isOpened()) {
-        capture.release();  // Release the camera when the window is destroyed
+        capture.release();
     }
 }
 
@@ -76,12 +100,37 @@ void CameraWindow::updateFrame()
             return;
         }
 
+        // Apply brightness adjustment
+        frame.convertTo(frame, -1, brightnessFactor, 0);
+
+        // Apply zoom by cropping
+        int centerX = frame.cols / 2;
+        int centerY = frame.rows / 2;
+        int width = frame.cols / zoomFactor;
+        int height = frame.rows / zoomFactor;
+        cv::Rect zoomRect(centerX - width / 2, centerY - height / 2, width, height);
+        cv::Mat zoomedFrame = frame(zoomRect);
+
+        // Resize to the original size to fit the window
+        cv::Mat resizedFrame;
+        cv::resize(zoomedFrame, resizedFrame, cv::Size(frame.cols, frame.rows));
+
         // Convert the OpenCV image (cv::Mat) to a Qt image (QImage)
         cv::Mat rgbFrame;
-        cv::cvtColor(frame, rgbFrame, cv::COLOR_BGR2RGB);
+        cv::cvtColor(resizedFrame, rgbFrame, cv::COLOR_BGR2RGB);
         QImage img(reinterpret_cast<const uchar*>(rgbFrame.data), rgbFrame.cols, rgbFrame.rows, rgbFrame.step, QImage::Format_RGB888);
 
         // Display the image in the label
         label->setPixmap(QPixmap::fromImage(img));
     }
+}
+
+void CameraWindow::changeBrightness(int value)
+{
+    brightnessFactor = value / 100.0;  // Map the slider value (0-200) to a factor (0.0-2.0)
+}
+
+void CameraWindow::changeZoom(int value)
+{
+    zoomFactor = value / 100.0;  // Map the slider value (50-150) to a zoom factor (0.5-1.5)
 }

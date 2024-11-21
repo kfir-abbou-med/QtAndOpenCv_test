@@ -5,6 +5,7 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QTimer>
+#include <QSlider>
 #include <opencv2/opencv.hpp>
 
 class CameraWindow : public QWidget
@@ -19,6 +20,8 @@ private slots:
     void startFeed();
     void stopFeed();
     void updateFrame();
+    void changeBrightness(int value);
+    void changeZoom(int value);
 
 private:
     cv::VideoCapture capture;
@@ -27,6 +30,10 @@ private:
     QLabel *label;
     QPushButton *startButton;
     QPushButton *stopButton;
+    QSlider *brightnessSlider;
+    QSlider *zoomSlider;
+    double brightnessFactor;
+    double zoomFactor;
 };
 
 #endif // CAMERA_WINDOW_H
