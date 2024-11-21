@@ -13,7 +13,7 @@ class CameraWindow : public QWidget
     Q_OBJECT // This macro is necessary for Qt's meta-object system
 
 public:
-    explicit CameraWindow(QWidget *parent = nullptr);
+    explicit CameraWindow(int cameraIndex, QWidget *parent = nullptr);
     ~CameraWindow();
 
 private slots:
@@ -34,6 +34,7 @@ private:
     QSlider *zoomSlider;
     double brightnessFactor;
     double zoomFactor;
+    int cameraIndex;
 };
 
 #endif // CAMERA_WINDOW_H

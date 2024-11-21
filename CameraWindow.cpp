@@ -4,12 +4,15 @@
 #include <QImage>
 #include <QPixmap>
 #include <opencv2/opencv.hpp>
+#include <iostream>
 
-CameraWindow::CameraWindow(QWidget *parent) : QWidget(parent), capture(0), isRunning(false), brightnessFactor(1.0), zoomFactor(1.0)
+using namespace std;
+
+CameraWindow::CameraWindow(int cameraIndex, QWidget *parent)
+    : QWidget(parent), capture(cameraIndex), isRunning(false), brightnessFactor(1.0), zoomFactor(1.0), cameraIndex(cameraIndex)
 {
-    // Set up the window layout
-    setWindowTitle("Webcam Feed");
-    setFixedSize(640, 480);
+    setWindowTitle("Webcam Feed - Camera " + QString::number(cameraIndex));
+    setFixedSize(640, 520);  // Adjust height for additional controls
 
     // Create a label to display the webcam feed
     label = new QLabel(this);
@@ -24,7 +27,7 @@ CameraWindow::CameraWindow(QWidget *parent) : QWidget(parent), capture(0), isRun
     brightnessSlider = new QSlider(Qt::Horizontal, this);
     brightnessSlider->setRange(0, 200);  // 0 to 200 for brightness factor adjustment
     brightnessSlider->setValue(100); // Default value (normal brightness)
-    
+
     zoomSlider = new QSlider(Qt::Horizontal, this);
     zoomSlider->setRange(50, 150);  // 50% to 150% zoom
     zoomSlider->setValue(100); // Default value (no zoom)
@@ -34,12 +37,12 @@ CameraWindow::CameraWindow(QWidget *parent) : QWidget(parent), capture(0), isRun
     layout->addWidget(label);
     layout->addWidget(startButton);
     layout->addWidget(stopButton);
-    
+
     QHBoxLayout *controlsLayout = new QHBoxLayout();
     controlsLayout->addWidget(new QLabel("Brightness"));
     controlsLayout->addWidget(brightnessSlider);
     layout->addLayout(controlsLayout);
-    
+
     QHBoxLayout *zoomLayout = new QHBoxLayout();
     zoomLayout->addWidget(new QLabel("Zoom"));
     zoomLayout->addWidget(zoomSlider);
@@ -68,7 +71,7 @@ CameraWindow::~CameraWindow()
 void CameraWindow::startFeed()
 {
     if (!capture.isOpened()) {
-        capture.open(0);  // Open the default camera
+        capture.open(cameraIndex);  // Open the specified camera
     }
 
     if (capture.isOpened()) {
@@ -133,4 +136,5 @@ void CameraWindow::changeBrightness(int value)
 void CameraWindow::changeZoom(int value)
 {
     zoomFactor = value / 100.0;  // Map the slider value (50-150) to a zoom factor (0.5-1.5)
+    cout << "val: "<< value << "factor: " << zoomFactor << endl;
 }
