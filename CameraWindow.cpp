@@ -1,24 +1,22 @@
-#include "CameraWindow.h"
+#include <QThread>
 #include <QVBoxLayout>
-#include <QHBoxLayout>
 #include <QImage>
 #include <QPixmap>
-#include <opencv2/opencv.hpp>
 #include <iostream>
+#include <opencv2/opencv.hpp>
+#include "CameraWindow.h"
 
 using namespace std;
 
 CameraWindow::CameraWindow(int cameraIndex, QWidget *parent)
-    : QWidget(parent), capture(cameraIndex), isRunning(false), brightnessFactor(1.0), zoomFactor(1.0), cameraIndex(cameraIndex)
-{
-    setWindowTitle("Webcam Feed - Camera " + QString::number(cameraIndex));
-    setFixedSize(640, 520);  // Adjust height for additional controls
+    : QWidget(parent), worker(nullptr), workerThread(nullptr), brightnessFactor(1.0), zoomFactor(1.0), cameraIndex(cameraIndex){
+    setWindowTitle(QString("Camera %1").arg(cameraIndex));
+    setFixedSize(640, 480);
 
-    // Create a label to display the webcam feed
+    // UI setup
     label = new QLabel(this);
     label->setAlignment(Qt::AlignCenter);
 
-    // Create start and stop buttons
     startButton = new QPushButton("Start", this);
     stopButton = new QPushButton("Stop", this);
     stopButton->setEnabled(false);
@@ -32,109 +30,96 @@ CameraWindow::CameraWindow(int cameraIndex, QWidget *parent)
     zoomSlider->setRange(50, 150);  // 50% to 150% zoom
     zoomSlider->setValue(100); // Default value (no zoom)
 
-    // Create layout for buttons and sliders
-    QVBoxLayout *layout = new QVBoxLayout();
+    QVBoxLayout *layout = new QVBoxLayout(this);
     layout->addWidget(label);
     layout->addWidget(startButton);
     layout->addWidget(stopButton);
-
-    QHBoxLayout *controlsLayout = new QHBoxLayout();
-    controlsLayout->addWidget(new QLabel("Brightness"));
-    controlsLayout->addWidget(brightnessSlider);
-    layout->addLayout(controlsLayout);
-
-    QHBoxLayout *zoomLayout = new QHBoxLayout();
-    zoomLayout->addWidget(new QLabel("Zoom"));
-    zoomLayout->addWidget(zoomSlider);
-    layout->addLayout(zoomLayout);
-
+    // Adding video setting buttons
+    layout->addWidget(brightnessSlider);
+    layout->addWidget(zoomSlider);
     setLayout(layout);
 
-    // Connect buttons and sliders to respective slots
-    connect(startButton, &QPushButton::clicked, this, &CameraWindow::startFeed);
-    connect(stopButton, &QPushButton::clicked, this, &CameraWindow::stopFeed);
-    connect(brightnessSlider, &QSlider::valueChanged, this, &CameraWindow::changeBrightness);
-    connect(zoomSlider, &QSlider::valueChanged, this, &CameraWindow::changeZoom);
+    // Worker and thread setup
+    worker = new CameraWorker(cameraIndex);
+    workerThread = new QThread(this);
+    worker->moveToThread(workerThread);
 
-    // Set up a timer to capture frames from the camera
-    timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, &CameraWindow::updateFrame);
+    connect(startButton, &QPushButton::clicked, worker, &CameraWorker::start);
+    connect(stopButton, &QPushButton::clicked, worker, &CameraWorker::stop);
+    connect(worker, &CameraWorker::frameReady, this, &CameraWindow::updateFrame);
+    connect(worker, &CameraWorker::errorOccurred, this, &CameraWindow::handleWorkerError);
+    // connect(brightnessSlider, &QSlider::valueChanged, this, &CameraWindow::changeBrightness);
+    // connect(zoomSlider, &QSlider::valueChanged, this, &CameraWindow::changeZoom);
+    // Connect slider changes to the worker's change methods
+    connect(brightnessSlider, &QSlider::valueChanged, worker, &CameraWorker::changeBrightness);
+    connect(zoomSlider, &QSlider::valueChanged, worker, &CameraWorker::changeZoom);
+
+
+    connect(workerThread, &QThread::finished, worker, &CameraWorker::deleteLater);
+    workerThread->start();
 }
 
-CameraWindow::~CameraWindow()
-{
-    if (capture.isOpened()) {
-        capture.release();
-    }
-}
+// void CameraWindow::updateFrame()
+// {
+//     if (isRunning) {
+//         cv::Mat frame;
+//         capture.read(frame);  // Capture a frame from the webcam
 
-void CameraWindow::startFeed()
-{
-    if (!capture.isOpened()) {
-        capture.open(cameraIndex);  // Open the specified camera
-    }
+//         if (frame.empty()) {
+//             return;
+//         }
 
-    if (capture.isOpened()) {
-        isRunning = true;
-        timer->start(33);  // Update the frame every 33 ms (30 FPS)
-        startButton->setEnabled(false);
-        stopButton->setEnabled(true);
-    }
-}
+//         // Apply brightness adjustment
+//         frame.convertTo(frame, -1, brightnessFactor, 0);
 
-void CameraWindow::stopFeed()
-{
-    if (capture.isOpened()) {
-        isRunning = false;
-        capture.release();
-        timer->stop();
-        startButton->setEnabled(true);
-        stopButton->setEnabled(false);
-    }
-}
+//         // Apply zoom by cropping
+//         int centerX = frame.cols / 2;
+//         int centerY = frame.rows / 2;
+//         int width = frame.cols / zoomFactor;
+//         int height = frame.rows / zoomFactor;
+//         cv::Rect zoomRect(centerX - width / 2, centerY - height / 2, width, height);
+//         cv::Mat zoomedFrame = frame(zoomRect);
 
-void CameraWindow::updateFrame()
-{
-    if (isRunning) {
-        cv::Mat frame;
-        capture.read(frame);  // Capture a frame from the webcam
+//         // Resize to the original size to fit the window
+//         cv::Mat resizedFrame;
+//         cv::resize(zoomedFrame, resizedFrame, cv::Size(frame.cols, frame.rows));
 
-        if (frame.empty()) {
-            return;
-        }
+//         // Convert the OpenCV image (cv::Mat) to a Qt image (QImage)
+//         cv::Mat rgbFrame;
+//         cv::cvtColor(resizedFrame, rgbFrame, cv::COLOR_BGR2RGB);
+//         QImage img(reinterpret_cast<const uchar*>(rgbFrame.data), rgbFrame.cols, rgbFrame.rows, rgbFrame.step, QImage::Format_RGB888);
 
-        // Apply brightness adjustment
-        frame.convertTo(frame, -1, brightnessFactor, 0);
+//         // Display the image in the label
+//         label->setPixmap(QPixmap::fromImage(img));
+//     }
+// }
 
-        // Apply zoom by cropping
-        int centerX = frame.cols / 2;
-        int centerY = frame.rows / 2;
-        int width = frame.cols / zoomFactor;
-        int height = frame.rows / zoomFactor;
-        cv::Rect zoomRect(centerX - width / 2, centerY - height / 2, width, height);
-        cv::Mat zoomedFrame = frame(zoomRect);
-
-        // Resize to the original size to fit the window
-        cv::Mat resizedFrame;
-        cv::resize(zoomedFrame, resizedFrame, cv::Size(frame.cols, frame.rows));
-
-        // Convert the OpenCV image (cv::Mat) to a Qt image (QImage)
-        cv::Mat rgbFrame;
-        cv::cvtColor(resizedFrame, rgbFrame, cv::COLOR_BGR2RGB);
-        QImage img(reinterpret_cast<const uchar*>(rgbFrame.data), rgbFrame.cols, rgbFrame.rows, rgbFrame.step, QImage::Format_RGB888);
-
-        // Display the image in the label
-        label->setPixmap(QPixmap::fromImage(img));
-    }
+void CameraWindow::updateFrame(const QImage &image) {
+    // Update the label with the new frame
+    label->setPixmap(QPixmap::fromImage(image));
 }
 
 void CameraWindow::changeBrightness(int value)
 {
     brightnessFactor = value / 100.0;  // Map the slider value (0-200) to a factor (0.0-2.0)
+    cout << "BRIGHTNESS -> val: "<< value << ", factor: " << zoomFactor << endl;
 }
 
 void CameraWindow::changeZoom(int value)
 {
     zoomFactor = value / 100.0;  // Map the slider value (50-150) to a zoom factor (0.5-1.5)
-    cout << "val: "<< value << "factor: " << zoomFactor << endl;
+    cout << "ZOOM -> val: "<< value << ", factor: " << zoomFactor << endl;
+}
+
+void CameraWindow::handleWorkerError(const QString &error) {
+    label->setText(error);
+
+}
+CameraWindow::~CameraWindow()
+{
+    // Stop the worker thread and clean up
+    workerThread->quit();
+    workerThread->wait();
+    delete worker;  // Clean up the worker object
+    delete workerThread;  // Clean up the worker thread
 }

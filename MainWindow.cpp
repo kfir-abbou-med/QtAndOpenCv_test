@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent)
 void MainWindow::detectCameras()
 {
     std::vector<int> availableCameras;
-    for (int i = 0; i <= 5; ++i) {
+    for (int i = 0; i <= 6; ++i) {
         cv::VideoCapture testCapture(i);
         if (testCapture.isOpened()) {
             availableCameras.push_back(i);

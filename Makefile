@@ -54,12 +54,16 @@ OBJECTS_DIR   = ./
 
 SOURCES       = main.cpp \
 		CameraWindow.cpp \
+		CameraWorker.cpp \
 		MainWindow.cpp moc_CameraWindow.cpp \
+		moc_CameraWorker.cpp \
 		moc_MainWindow.cpp
 OBJECTS       = main.o \
 		CameraWindow.o \
+		CameraWorker.o \
 		MainWindow.o \
 		moc_CameraWindow.o \
+		moc_CameraWorker.o \
 		moc_MainWindow.o
 DIST          = /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/common/unix.conf \
@@ -140,8 +144,10 @@ DIST          = /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/lex.prf \
 		QtOpenCVApp.pro CameraWindow.h \
+		CameraWorker.h \
 		MainWindow.h main.cpp \
 		CameraWindow.cpp \
+		CameraWorker.cpp \
 		MainWindow.cpp
 QMAKE_TARGET  = QtOpenCVApp
 DESTDIR       = 
@@ -328,8 +334,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents CameraWindow.h MainWindow.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp CameraWindow.cpp MainWindow.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents CameraWindow.h CameraWorker.h MainWindow.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp CameraWindow.cpp CameraWorker.cpp MainWindow.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -361,13 +367,19 @@ compiler_moc_predefs_clean:
 moc_predefs.h: /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 	g++ -pipe -O2 -std=gnu++11 -Wall -Wextra -dM -E -o moc_predefs.h /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/data/dummy.cpp
 
-compiler_moc_header_make_all: moc_CameraWindow.cpp moc_MainWindow.cpp
+compiler_moc_header_make_all: moc_CameraWindow.cpp moc_CameraWorker.cpp moc_MainWindow.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_CameraWindow.cpp moc_MainWindow.cpp
+	-$(DEL_FILE) moc_CameraWindow.cpp moc_CameraWorker.cpp moc_MainWindow.cpp
 moc_CameraWindow.cpp: CameraWindow.h \
+		CameraWorker.h \
 		moc_predefs.h \
 		/usr/lib/qt5/bin/moc
 	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/kfir/git/QtOpenCVApp/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/kfir/git/QtOpenCVApp -I/usr/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I/usr/include/c++/11 -I/usr/include/aarch64-linux-gnu/c++/11 -I/usr/include/c++/11/backward -I/usr/lib/gcc/aarch64-linux-gnu/11/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include CameraWindow.h -o moc_CameraWindow.cpp
+
+moc_CameraWorker.cpp: CameraWorker.h \
+		moc_predefs.h \
+		/usr/lib/qt5/bin/moc
+	/usr/lib/qt5/bin/moc $(DEFINES) --include /home/kfir/git/QtOpenCVApp/moc_predefs.h -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-g++ -I/home/kfir/git/QtOpenCVApp -I/usr/include/opencv4 -I/usr/include/aarch64-linux-gnu/qt5 -I/usr/include/aarch64-linux-gnu/qt5/QtWidgets -I/usr/include/aarch64-linux-gnu/qt5/QtGui -I/usr/include/aarch64-linux-gnu/qt5/QtCore -I/usr/include/c++/11 -I/usr/include/aarch64-linux-gnu/c++/11 -I/usr/include/c++/11/backward -I/usr/lib/gcc/aarch64-linux-gnu/11/include -I/usr/local/include -I/usr/include/aarch64-linux-gnu -I/usr/include CameraWorker.h -o moc_CameraWorker.cpp
 
 moc_MainWindow.cpp: MainWindow.h \
 		moc_predefs.h \
@@ -393,15 +405,23 @@ compiler_clean: compiler_moc_predefs_clean compiler_moc_header_clean
 main.o: main.cpp MainWindow.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
-CameraWindow.o: CameraWindow.cpp CameraWindow.h
+CameraWindow.o: CameraWindow.cpp CameraWindow.h \
+		CameraWorker.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o CameraWindow.o CameraWindow.cpp
 
+CameraWorker.o: CameraWorker.cpp CameraWorker.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o CameraWorker.o CameraWorker.cpp
+
 MainWindow.o: MainWindow.cpp MainWindow.h \
-		CameraWindow.h
+		CameraWindow.h \
+		CameraWorker.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o MainWindow.o MainWindow.cpp
 
 moc_CameraWindow.o: moc_CameraWindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_CameraWindow.o moc_CameraWindow.cpp
+
+moc_CameraWorker.o: moc_CameraWorker.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_CameraWorker.o moc_CameraWorker.cpp
 
 moc_MainWindow.o: moc_MainWindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_MainWindow.o moc_MainWindow.cpp

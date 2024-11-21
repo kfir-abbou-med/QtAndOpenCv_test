@@ -1,10 +1,13 @@
 QT += core gui widgets
 
 CONFIG += c++11
-HEADERS += CameraWindow.h \ 
+HEADERS += CameraWindow.h \
+           CameraWorker.h \
            MainWindow.h
+
 SOURCES += main.cpp \
   CameraWindow.cpp  \
+  CameraWorker.cpp \
   MainWindow.cpp
 
 INCLUDEPATH += /usr/include/opencv4

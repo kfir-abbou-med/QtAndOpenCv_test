@@ -1,30 +1,33 @@
-#ifndef CAMERA_WORKER_H
-#define CAMERA_WORKER_H
+#ifndef CAMERAWORKER_H
+#define CAMERAWORKER_H
 
 #include <QObject>
-#include <QImage>
 #include <opencv2/opencv.hpp>
+#include <QImage>
 
-class CameraWorker : public QObject
-{
+class CameraWorker : public QObject {
     Q_OBJECT
 
 public:
     explicit CameraWorker(int cameraIndex, QObject *parent = nullptr);
     ~CameraWorker();
 
-signals:
-    void frameReady(const QImage &frame);
-    void errorOccurred(const QString &error);
-
 public slots:
     void start();
     void stop();
+    void changeBrightness(double factor);
+    void changeZoom(double factor);
+
+signals:
+    void frameReady(const QImage &image);
+    void errorOccurred(const QString &error);
 
 private:
     int cameraIndex;
-    cv::VideoCapture capture;
     bool isRunning;
+    cv::VideoCapture capture;
+    double brightnessFactor; // New member for brightness
+    double zoomFactor;       // New member for zoom
 };
 
-#endif // CAMERA_WORKER_H
+#endif // CAMERAWORKER_H
