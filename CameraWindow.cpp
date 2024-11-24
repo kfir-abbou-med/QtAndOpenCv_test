@@ -27,8 +27,8 @@ CameraWindow::CameraWindow(int cameraIndex, QWidget *parent)
     brightnessSlider->setValue(100); // Default value (normal brightness)
 
     zoomSlider = new QSlider(Qt::Horizontal, this);
-    zoomSlider->setRange(50, 150);  // 50% to 150% zoom
-    zoomSlider->setValue(100); // Default value (no zoom)
+    zoomSlider->setRange(100, 200);  // 50% to 150% zoom
+    zoomSlider->setValue(150); // Default value (no zoom)
 
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->addWidget(label);
@@ -48,67 +48,31 @@ CameraWindow::CameraWindow(int cameraIndex, QWidget *parent)
     connect(stopButton, &QPushButton::clicked, worker, &CameraWorker::stop);
     connect(worker, &CameraWorker::frameReady, this, &CameraWindow::updateFrame);
     connect(worker, &CameraWorker::errorOccurred, this, &CameraWindow::handleWorkerError);
-    // connect(brightnessSlider, &QSlider::valueChanged, this, &CameraWindow::changeBrightness);
-    // connect(zoomSlider, &QSlider::valueChanged, this, &CameraWindow::changeZoom);
-    // Connect slider changes to the worker's change methods
-    connect(brightnessSlider, &QSlider::valueChanged, worker, &CameraWorker::changeBrightness);
-    connect(zoomSlider, &QSlider::valueChanged, worker, &CameraWorker::changeZoom);
 
+    // Connect slider changes to the worker's change methods
+    // connect(brightnessSlider, &QSlider::valueChanged, worker, &CameraWorker::changeBrightness);
+    // connect(zoomSlider, &QSlider::valueChanged, worker, &CameraWorker::changeZoom);
+    connect(brightnessSlider, &QSlider::valueChanged, this, &CameraWindow::onBrightnessSliderValueChanged);
+    connect(zoomSlider, &QSlider::valueChanged, this, &CameraWindow::onZoomSliderValueChanged);
 
     connect(workerThread, &QThread::finished, worker, &CameraWorker::deleteLater);
     workerThread->start();
 }
 
-// void CameraWindow::updateFrame()
-// {
-//     if (isRunning) {
-//         cv::Mat frame;
-//         capture.read(frame);  // Capture a frame from the webcam
-
-//         if (frame.empty()) {
-//             return;
-//         }
-
-//         // Apply brightness adjustment
-//         frame.convertTo(frame, -1, brightnessFactor, 0);
-
-//         // Apply zoom by cropping
-//         int centerX = frame.cols / 2;
-//         int centerY = frame.rows / 2;
-//         int width = frame.cols / zoomFactor;
-//         int height = frame.rows / zoomFactor;
-//         cv::Rect zoomRect(centerX - width / 2, centerY - height / 2, width, height);
-//         cv::Mat zoomedFrame = frame(zoomRect);
-
-//         // Resize to the original size to fit the window
-//         cv::Mat resizedFrame;
-//         cv::resize(zoomedFrame, resizedFrame, cv::Size(frame.cols, frame.rows));
-
-//         // Convert the OpenCV image (cv::Mat) to a Qt image (QImage)
-//         cv::Mat rgbFrame;
-//         cv::cvtColor(resizedFrame, rgbFrame, cv::COLOR_BGR2RGB);
-//         QImage img(reinterpret_cast<const uchar*>(rgbFrame.data), rgbFrame.cols, rgbFrame.rows, rgbFrame.step, QImage::Format_RGB888);
-
-//         // Display the image in the label
-//         label->setPixmap(QPixmap::fromImage(img));
-//     }
-// }
-
 void CameraWindow::updateFrame(const QImage &image) {
     // Update the label with the new frame
     label->setPixmap(QPixmap::fromImage(image));
 }
+ 
+void CameraWindow::onBrightnessSliderValueChanged(int value) {
+    worker->changeBrightness(value / 100.0); // Map the slider value (0-200) to a factor (0.0-2.0)
+`}
 
-void CameraWindow::changeBrightness(int value)
-{
-    brightnessFactor = value / 100.0;  // Map the slider value (0-200) to a factor (0.0-2.0)
-    cout << "BRIGHTNESS -> val: "<< value << ", factor: " << zoomFactor << endl;
-}
 
-void CameraWindow::changeZoom(int value)
-{
-    zoomFactor = value / 100.0;  // Map the slider value (50-150) to a zoom factor (0.5-1.5)
-    cout << "ZOOM -> val: "<< value << ", factor: " << zoomFactor << endl;
+void CameraWindow::onZoomSliderValueChanged(int value) {
+
+    worker->changeZoom(value / 100.0); // Map the slider value (50-150) to a zoom factor (0.5-1.5)
+
 }
 
 void CameraWindow::handleWorkerError(const QString &error) {
