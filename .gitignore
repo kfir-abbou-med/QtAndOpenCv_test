@@ -36,4 +36,5 @@ cmake_install.cmake
 .DS_Store
 Thumbs.db
 moc_*
+*.o
 /QtOpenCVApp
