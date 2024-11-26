@@ -28,7 +28,7 @@ CameraWindow::CameraWindow(int cameraIndex, QWidget *parent)
 
     zoomSlider = new QSlider(Qt::Horizontal, this);
     zoomSlider->setRange(100, 200);  // 50% to 150% zoom
-    zoomSlider->setValue(150); // Default value (no zoom)
+    zoomSlider->setValue(100); // Default value (no zoom)
 
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->addWidget(label);
