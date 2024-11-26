@@ -35,5 +35,5 @@ cmake_install.cmake
 # Ignore other system files
 .DS_Store
 Thumbs.db
-
+moc_*
 /QtOpenCVApp
