@@ -1,19 +1,18 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'CameraWindow.h'
 **
-** Created by: The Qt Meta Object Compiler version 67 (Qt 5.15.3)
+** Created by: The Qt Meta Object Compiler version 67 (Qt 5.12.8)
 **
 ** WARNING! All changes made in this file will be lost!
 *****************************************************************************/
 
-#include <memory>
 #include "CameraWindow.h"
 #include <QtCore/qbytearray.h>
 #include <QtCore/qmetatype.h>
 #if !defined(Q_MOC_OUTPUT_REVISION)
 #error "The header file 'CameraWindow.h' doesn't include <QObject>."
 #elif Q_MOC_OUTPUT_REVISION != 67
-#error "This file was generated using the moc from 5.15.3. It"
+#error "This file was generated using the moc from 5.12.8. It"
 #error "cannot be used with the include files from this version of Qt."
 #error "(The moc has changed too much.)"
 #endif
@@ -23,7 +22,7 @@ QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
 struct qt_meta_stringdata_CameraWindow_t {
     QByteArrayData data[9];
-    char stringdata0[90];
+    char stringdata0[118];
 };
 #define QT_MOC_LITERAL(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
@@ -36,16 +35,17 @@ QT_MOC_LITERAL(0, 0, 12), // "CameraWindow"
 QT_MOC_LITERAL(1, 13, 11), // "updateFrame"
 QT_MOC_LITERAL(2, 25, 0), // ""
 QT_MOC_LITERAL(3, 26, 5), // "image"
-QT_MOC_LITERAL(4, 32, 16), // "changeBrightness"
-QT_MOC_LITERAL(5, 49, 5), // "value"
-QT_MOC_LITERAL(6, 55, 10), // "changeZoom"
-QT_MOC_LITERAL(7, 66, 17), // "handleWorkerError"
-QT_MOC_LITERAL(8, 84, 5) // "error"
+QT_MOC_LITERAL(4, 32, 30), // "onBrightnessSliderValueChanged"
+QT_MOC_LITERAL(5, 63, 5), // "value"
+QT_MOC_LITERAL(6, 69, 24), // "onZoomSliderValueChanged"
+QT_MOC_LITERAL(7, 94, 17), // "handleWorkerError"
+QT_MOC_LITERAL(8, 112, 5) // "error"
 
     },
     "CameraWindow\0updateFrame\0\0image\0"
-    "changeBrightness\0value\0changeZoom\0"
-    "handleWorkerError\0error"
+    "onBrightnessSliderValueChanged\0value\0"
+    "onZoomSliderValueChanged\0handleWorkerError\0"
+    "error"
 };
 #undef QT_MOC_LITERAL
 
@@ -81,11 +81,11 @@ void CameraWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id
 {
     if (_c == QMetaObject::InvokeMetaMethod) {
         auto *_t = static_cast<CameraWindow *>(_o);
-        (void)_t;
+        Q_UNUSED(_t)
         switch (_id) {
         case 0: _t->updateFrame((*reinterpret_cast< const QImage(*)>(_a[1]))); break;
-        case 1: _t->changeBrightness((*reinterpret_cast< int(*)>(_a[1]))); break;
-        case 2: _t->changeZoom((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 1: _t->onBrightnessSliderValueChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
+        case 2: _t->onZoomSliderValueChanged((*reinterpret_cast< int(*)>(_a[1]))); break;
         case 3: _t->handleWorkerError((*reinterpret_cast< const QString(*)>(_a[1]))); break;
         default: ;
         }
@@ -93,7 +93,7 @@ void CameraWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id
 }
 
 QT_INIT_METAOBJECT const QMetaObject CameraWindow::staticMetaObject = { {
-    QMetaObject::SuperData::link<QWidget::staticMetaObject>(),
+    &QWidget::staticMetaObject,
     qt_meta_stringdata_CameraWindow.data,
     qt_meta_data_CameraWindow,
     qt_static_metacall,

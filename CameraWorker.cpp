@@ -27,10 +27,10 @@ void CameraWorker::start() {
             emit errorOccurred(QString("Failed to read frame from camera %1").arg(cameraIndex));
             continue;
         }
-        cout << "Reading Frame... "<<endl;
+        
         // Apply brightness adjustment
         frame.convertTo(frame, -1, brightnessFactor, 0);
-        cout << "converted" <<endl;
+        
         // Apply zoom by cropping
         int centerX = frame.cols / 2;
         int centerY = frame.rows / 2;
@@ -60,8 +60,10 @@ void CameraWorker::stop() {
 
 void CameraWorker::changeBrightness(double factor) {
     brightnessFactor = factor; // Update the brightness factor
+    cout << "BRIGHTNESS -> factor: " << brightnessFactor << endl;
 }
 
 void CameraWorker::changeZoom(double factor) {
     zoomFactor = factor; // Update the zoom factor
+    cout << "ZOOM -> factor: " << zoomFactor << endl;
 }

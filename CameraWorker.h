@@ -26,8 +26,8 @@ private:
     int cameraIndex;
     bool isRunning;
     cv::VideoCapture capture;
-    double brightnessFactor; // New member for brightness
-    double zoomFactor;       // New member for zoom
+    double brightnessFactor;  
+    double zoomFactor;        
 };
 
 #endif // CAMERAWORKER_H

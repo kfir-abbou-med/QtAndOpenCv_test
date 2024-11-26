@@ -66,7 +66,7 @@ void CameraWindow::updateFrame(const QImage &image) {
  
 void CameraWindow::onBrightnessSliderValueChanged(int value) {
     worker->changeBrightness(value / 100.0); // Map the slider value (0-200) to a factor (0.0-2.0)
-`}
+}
 
 
 void CameraWindow::onZoomSliderValueChanged(int value) {
